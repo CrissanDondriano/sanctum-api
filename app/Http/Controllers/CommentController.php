@@ -2,83 +2,95 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
+use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the comments.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        //
+        $comments = Comment::with('user', 'post')->get();
+        return response()->json($comments, 200);
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Store a newly created comment in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'post_id' => 'required|exists:posts,id',
+            'content' => 'required|string',
+        ]);
+
+        $comment = Comment::create([
+            'post_id' => $request->post_id,
+            'user_id' => Auth::id(),
+            'content' => $request->content,
+        ]);
+
+        return response()->json($comment, 201);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified comment.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param  \App\Models\Comment  $comment
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function show(Comment $comment)
     {
-        //
+        return response()->json($comment->load('user', 'post'), 200);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Update the specified comment in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param  \App\Models\Comment  $comment
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Comment $comment)
     {
-        //
+        // Authorization check
+        if ($comment->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $request->validate([
+            'content' => 'required|string',
+        ]);
+
+        $comment->update($request->only('content'));
+
+        return response()->json($comment, 200);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified comment from storage.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param  \App\Models\Comment  $comment
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id)
+    public function destroy(Comment $comment)
     {
-        //
+        // Authorization check
+        if ($comment->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $comment->delete();
+
+        return response()->json(null, 204);
     }
 }

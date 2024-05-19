@@ -15,4 +15,8 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::resource('comments', CommentController::class);
 });
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::resource('comments', CommentController::class)->except(['create', 'edit']);
+});
+
 
