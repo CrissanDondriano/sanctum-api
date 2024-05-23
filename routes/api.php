@@ -11,15 +11,19 @@ Route::post('/register', [AuthController::class, 'register']);
 
 
 Route::get('/posts', [PostController::class, 'index']);
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/posts', [PostController::class, 'store'])->middleware('role:admin,user');
-    Route::get('/posts/{post}', [PostController::class, 'show']);
-    Route::put('/posts/{post}', [PostController::class, 'update'])->middleware('role:admin,user');
-    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->middleware('role:admin');
+Route::post('/posts', [PostController::class, 'store']);
+Route::get('/posts/{post}', [PostController::class, 'show']);
+Route::put('/posts/{post}', [PostController::class, 'update']);
+Route::delete('/posts/{post}', [PostController::class, 'destroy']);
 
-    Route::get('/comments', [CommentController::class, 'index']);
-    Route::post('/comments', [CommentController::class, 'store'])->middleware('role:admin,user');
-    Route::get('/comments/{comment}', [CommentController::class, 'show']);
-    Route::put('/comments/{comment}', [CommentController::class, 'update'])->middleware('role:admin,user');
-    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->middleware('role:admin');
+Route::get('/comments', [CommentController::class, 'index']);
+Route::post('/comments', [CommentController::class, 'store']);
+Route::get('/comments/{comment}', [CommentController::class, 'show']);
+Route::put('/comments/{comment}', [CommentController::class, 'update']);
+Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+
+Route::middleware('auth:sanctum')->group(function () {
+
+
+ 
 });

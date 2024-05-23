@@ -8,43 +8,46 @@ use Illuminate\Http\Request;
 class PostController extends Controller
 {
     public function index() {
-        return Post::with('user', 'comments')->get();
+        return Post::with('user', 'comments.user')->get();
     }
 
     public function store(Request $request) {
-        $request->validate([
-            'title' => 'required|string',
-            'content' => 'required|string',
-        ]);
+        $post = new Post();
+        $post->title = $request->title;
+        $post->content = $request->content;
+        $post->user_id = '1';
 
-        $post = Post::create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'user_id' => $request->user()->id,
-        ]);
+        $post->save();
 
-        return response()->json($post);
+        return response()->json([
+            'post' => $post,
+            'message' => 'Post created', 
+            'method' => 'POST'], 
+        201);
     }
 
     public function show(Post $post) {
-        return response()->json($post->load('user', 'comments'));
+        return response()->json($post->load('user', 'comments.user'));
     }
 
     public function update(Request $request, Post $post) {
-        $this->authorize('update', $post);
+        //$this->authorize('update', $post);
 
         $request->validate([
             'title' => 'string',
             'content' => 'string',
         ]);
 
-        $post->update($request->all());
+        //$post->update($request->only(['title', 'content']));
+        $post->title = $request->title;
+        $post->content = $request->content;
+        $post->save();
 
-        return response()->json($post);
+        return response()->json($post->load('user', 'comments.user'));
     }
 
     public function destroy(Post $post) {
-        $this->authorize('delete', $post);
+       // $this->authorize('delete', $post);
 
         $post->delete();
 

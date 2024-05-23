@@ -9,25 +9,11 @@ use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
-    /**
-     * Display a listing of the comments.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function index()
-    {
-        $comments = Comment::with('user', 'post')->get();
-        return response()->json($comments, 200);
+    public function index() {
+        return Comment::with('user')->get();
     }
 
-    /**
-     * Store a newly created comment in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $request->validate([
             'post_id' => 'required|exists:posts,id',
             'content' => 'required|string',
@@ -35,59 +21,31 @@ class CommentController extends Controller
 
         $comment = Comment::create([
             'post_id' => $request->post_id,
-            'user_id' => Auth::id(),
             'content' => $request->content,
+            'user_id' => rand(1, 5),
         ]);
 
-        return response()->json($comment, 201);
+        return response()->json($comment->load('user'));
     }
 
-    /**
-     * Display the specified comment.
-     *
-     * @param  \App\Models\Comment  $comment
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function show(Comment $comment)
-    {
-        return response()->json($comment->load('user', 'post'), 200);
+    public function show(Comment $comment) {
+        return response()->json($comment->load('user'));
     }
 
-    /**
-     * Update the specified comment in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Comment  $comment
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function update(Request $request, Comment $comment)
-    {
-        // Authorization check
-        if ($comment->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
+    public function update(Request $request, Comment $comment) {
+        $this->authorize('update', $comment);
 
         $request->validate([
-            'content' => 'required|string',
+            'content' => 'string',
         ]);
 
-        $comment->update($request->only('content'));
+        $comment->update($request->only(['content']));
 
-        return response()->json($comment, 200);
+        return response()->json($comment->load('user'));
     }
 
-    /**
-     * Remove the specified comment from storage.
-     *
-     * @param  \App\Models\Comment  $comment
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function destroy(Comment $comment)
-    {
-        // Authorization check
-        if ($comment->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
+    public function destroy(Comment $comment) {
+        $this->authorize('delete', $comment);
 
         $comment->delete();
 
